@@ -32,17 +32,27 @@ const code = new Item({
 
 const defaultItems=[food,code]
 
-Item.insertMany(defaultItems, (err) => {
-  if (err) {
-    console.log(err);
-  } else {
-    console.log('Successfully inserted default items');
-  }
-})
+
+
+
 
 app.get("/", (req, res) => {
+
+  Item.find({}, (err, foundItems) => {
+    if (foundItems.length === 0) {
+      Item.insertMany(defaultItems, (err) => {
+        if (err) {
+          console.log(err);
+        } else {
+          console.log('Successfully inserted default items');
+        }
+      }) 
+    }
+    res.render("list", { listTitle: day, newListItems: foundItems })
+  })
+
   const day = getDate();
-  res.render("list", { listTitle: day, newListItems: items });
+  // 
   // console.log(__dirname + "/index.html");
   // res.sendFile(__dirname + "/index.html");
 });
