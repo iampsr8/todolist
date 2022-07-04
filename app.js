@@ -8,23 +8,38 @@ const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 import express from "express";
 import bodyParser from "body-parser";
 import getDate from "./date.js";
+import mongoose from "mongoose";
 // const date = require(__dirname + "/date.js");
 
 const app = express();
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
-const items = ["buy food"];
-const workList = [];
-// const days = [
-//   "sunday",
-//   "monday",
-//   "tuesday",
-//   "wednesday",
-//   "thursday",
-//   "friday",
-//   "saturday",
-// ];
+
+
+mongoose.connect("mongodb://localhost:27017/todolistDB", { useNewUrlParser: true})
+const itemsSchema = new mongoose.Schema({
+  name:String
+})
+const Item=mongoose.model('item',itemsSchema)
+
+const food = new Item({
+  name:'Buy Food'
+})
+const code = new Item({
+  name:'Code'
+})
+
+const defaultItems=[food,code]
+
+Item.insertMany(defaultItems, (err) => {
+  if (err) {
+    console.log(err);
+  } else {
+    console.log('Successfully inserted default items');
+  }
+})
+
 app.get("/", (req, res) => {
   const day = getDate();
   res.render("list", { listTitle: day, newListItems: items });
