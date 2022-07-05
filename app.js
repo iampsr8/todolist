@@ -65,15 +65,36 @@ app.get("/about", (req, res) => {
   res.render("about");
 });
 app.post("/", (req, res) => {
-  const item = req.body.item;
-  if (req.body.button === "Work list") {
-    workList.push(item);
-    res.redirect("/work");
-  } else {
-    items.push(item);
-    res.redirect("/");
-  }
+  const itemName = req.body.item;
+  const item = new Item({
+    name:itemName
+  })
+
+  item.save()
+  res.redirect('/')
+
+  // if (req.body.list === "Work") {
+  //   workList.push(item);
+  //   res.redirect("/work");
+  // } else {
+  //   items.push(item);
+  //   res.redirect("/");
+  // }
 });
+
+app.post('/delete', (req, res) => {
+  const ItemId = req.body.checkbox;
+  const checkedItemId=ItemId.trim()
+  // console.log(checkedItemId);
+  Item.findByIdAndRemove(checkedItemId, (err) => {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log("successfully deleted");
+    }
+  })
+  res.redirect('/');
+})
 
 app.listen(3000, () => {
   console.log("server running on port 3000");
