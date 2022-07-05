@@ -62,13 +62,7 @@ app.get("/", (req, res) => {
   // res.sendFile(__dirname + "/index.html");
 });
 
-app.get("/work", (req, res) => {
-  res.render("list", { listTitle: "Work list", newListItems: workList });
-});
 
-app.get("/about", (req, res) => {
-  res.render("about");
-});
 
 app.get('/:customListName', (req, res) => {
   const customListName = req.params.customListName;
@@ -92,21 +86,36 @@ app.get('/:customListName', (req, res) => {
 })
 
 app.post("/", (req, res) => {
+  // console.log(req.body);
   const itemName = req.body.item;
+  console.log(req.body);
+  const listNameUntrimmed = req.body.list;
+  const listName=listNameUntrimmed.trim()
   const item = new Item({
     name:itemName
   })
+  const day = getDate();
+  if (listName === day) {
+    item.save()
+    res.redirect('/')
+  } else {
+    List.findOne({ name: listName }, (err, foundList) => {
+      // console.log(foundList);
+      // console.log(itemName);
+      // console.log(listName);
+      if (err) {
+        console.log(err);
+      } else {
+        // console.log(req.body);
+        // console.log(foundList);
+        foundList.items.push(item)
+      foundList.save();
+      res.redirect('/' + listName)
+      }
+    })
+  }
+  
 
-  item.save()
-  res.redirect('/')
-
-  // if (req.body.list === "Work") {
-  //   workList.push(item);
-  //   res.redirect("/work");
-  // } else {
-  //   items.push(item);
-  //   res.redirect("/");
-  // }
 });
 
 app.post('/delete', (req, res) => {
