@@ -32,7 +32,12 @@ const code = new Item({
 
 const defaultItems=[food,code]
 
+const listSchema = new mongoose.Schema({
+  name: String,
+  items:[itemsSchema]
+})
 
+const List=mongoose.model('List',listSchema)
 
 
 
@@ -64,6 +69,28 @@ app.get("/work", (req, res) => {
 app.get("/about", (req, res) => {
   res.render("about");
 });
+
+app.get('/:customListName', (req, res) => {
+  const customListName = req.params.customListName;
+  List.findOne({ name: customListName }, (err, foundList) => {
+    if (!err) {
+      if (!foundList) {
+        //create a new list
+        const list = new List({
+          name: customListName,
+          items:defaultItems
+        })
+        list.save();
+        res.redirect('/' + customListName)
+      } else {
+        //show an existing list
+        res.render('list',{ listTitle: customListName, newListItems: foundList.items })
+      }
+    }
+  })
+  
+})
+
 app.post("/", (req, res) => {
   const itemName = req.body.item;
   const item = new Item({
