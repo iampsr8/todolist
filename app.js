@@ -1,14 +1,13 @@
 import * as url from "url";
 const __filename = url.fileURLToPath(import.meta.url);
 const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
-// console.log(__dirname);
-// const express = require("express");
-// const bodyParser = require("body-parser");
-// import E from "express";
+
+
 import express from "express";
 import bodyParser from "body-parser";
 import getDate from "./date.js";
 import mongoose from "mongoose";
+import _ from "lodash";
 // const date = require(__dirname + "/date.js");
 
 const app = express();
@@ -65,7 +64,7 @@ app.get("/", (req, res) => {
 
 
 app.get('/:customListName', (req, res) => {
-  const customListName = req.params.customListName;
+  const customListName = _.capitalize(req.params.customListName);
   List.findOne({ name: customListName }, (err, foundList) => {
     if (!err) {
       if (!foundList) {
@@ -87,10 +86,9 @@ app.get('/:customListName', (req, res) => {
 
 app.post("/", (req, res) => {
   // console.log(req.body);
-  const itemName = req.body.item;
-  console.log(req.body);
-  const listNameUntrimmed = req.body.list;
-  const listName=listNameUntrimmed.trim()
+  const itemName = _.capitalize(req.body.item);
+  // console.log(req.body);
+  const listName=req.body.list.trim()
   const item = new Item({
     name:itemName
   })
@@ -119,17 +117,28 @@ app.post("/", (req, res) => {
 });
 
 app.post('/delete', (req, res) => {
+
   const ItemId = req.body.checkbox;
+  const listName = req.body.listName.trim();
   const checkedItemId=ItemId.trim()
-  // console.log(checkedItemId);
-  Item.findByIdAndRemove(checkedItemId, (err) => {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log("successfully deleted");
-    }
-  })
-  res.redirect('/');
+  const date = getDate();
+  if (listName === date) {
+    Item.findByIdAndRemove(checkedItemId, (err) => {
+      if (err) {
+        console.log(err);
+      } else {
+        console.log("successfully deleted");
+      }
+    })
+    res.redirect('/');
+  } else {
+    List.findOneAndUpdate({ name: listName }, { $pull: { items: { _id: checkedItemId } } }, (err, foundList) => {
+      if (!err) {
+        res.redirect('/'+listName)
+      }
+    })
+  }
+  
 })
 
 app.listen(3000, () => {
